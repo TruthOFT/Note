@@ -1,0 +1,7 @@
+server:
+  port: 80
+spring:
+  security:
+    jwt:
+      key: abcde
+      expire: 3
