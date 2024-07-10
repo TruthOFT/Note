@@ -1,7 +1,8 @@
 package com.note.config;
 
-import com.auth0.jwt.JWT;
 import com.note.entity.RestBean;
+import com.note.entity.vo.response.AuthorizeVO;
+import com.note.filter.JwtFilter;
 import com.note.utils.JwtUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.ServletException;
@@ -11,9 +12,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
 
@@ -23,6 +27,9 @@ public class SecurityConfig {
     @Resource
     JwtUtil jwtUtil;
 
+    @Resource
+    JwtFilter jwtFilter;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
@@ -31,6 +38,9 @@ public class SecurityConfig {
                 .formLogin(login -> login.loginProcessingUrl("/api/auth/login")
                         .successHandler(this::onAuthenticationSuccess))
                 .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s ->
+                        s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -38,6 +48,7 @@ public class SecurityConfig {
         response.setContentType("application/json;charset=utf-8");
         User user = (User) authentication.getPrincipal();
         String token = jwtUtil.createJwt(user, 1, user.getUsername());
-        response.getWriter().write(RestBean.success(token, "登录成功").asJsonString());
+        AuthorizeVO authorizeVO = new AuthorizeVO(user.getUsername(), "", token, jwtUtil.expireTime());
+        response.getWriter().write(RestBean.success(authorizeVO, "登录成功").asJsonString());
     }
 }
