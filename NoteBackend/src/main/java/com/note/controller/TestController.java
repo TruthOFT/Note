@@ -1,5 +1,6 @@
 package com.note.controller;
 
+import com.note.entity.RestBean;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,5 +12,12 @@ public class TestController {
     @ResponseBody
     public String hello() {
         return "Hello";
+    }
+
+
+    @GetMapping("/err")
+    @ResponseBody
+    public String err() {
+        return RestBean.failure().asJsonString();
     }
 }

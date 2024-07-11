@@ -5,19 +5,25 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.note.constant.Constant;
+import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @SpringBootTest
 class NoteBackendApplicationTests {
 
     private static final int EXPIRE_HOUR = 3;
     private static final Algorithm algorithm = Algorithm.HMAC256("key");
+
+    @Resource
+    StringRedisTemplate template;
+
     String createJwt() {
         return JWT.create()
                 .withClaim("id", 123)
@@ -34,10 +40,10 @@ class NoteBackendApplicationTests {
         return calendar.getTime();
     }
 
-    Map<String, Claim> decodedJWT(String token) {
+    DecodedJWT decodedJWT(String token) {
         try {
             JWTVerifier verifier = JWT.require(algorithm).build();
-            return verifier.verify(token).getClaims();
+            return verifier.verify(token);
         } catch (JWTVerificationException e) {
             return null;
         }
@@ -45,11 +51,16 @@ class NoteBackendApplicationTests {
 
     @Test
     void contextLoads() {
+        // token Test
         String token = createJwt();
         System.out.println(token);
+//
+        DecodedJWT decodedJWT = decodedJWT(token);
+        System.out.println(decodedJWT.getClaims().get("id").asInt());
+        Date expiresAt = decodedJWT.getExpiresAt();
+        Date now = new Date();
+        template.opsForValue().set(Constant.JWT_BLACK_LIST_START + UUID.randomUUID(), "This is test value");
 
-        Map<String, Claim> stringClaimMap = decodedJWT(token);
-        System.out.println(stringClaimMap.get("id").asInt());
     }
 
 }
