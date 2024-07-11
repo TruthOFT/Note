@@ -1,6 +1,7 @@
 package com.note.config;
 
 import com.note.entity.RestBean;
+import com.note.entity.vo.response.AuthorizeVO;
 import com.note.filter.JwtFilter;
 import com.note.utils.JwtUtil;
 import jakarta.annotation.Resource;
@@ -48,7 +49,8 @@ public class SecurityConfig {
         response.setContentType("application/json;charset=utf-8");
         User user = (User) authentication.getPrincipal();
         String token = jwtUtil.createJwt(user, 1, user.getUsername());
-        response.getWriter().write(RestBean.success(token, "登录成功").asJsonString());
+        AuthorizeVO authorizeVO = new AuthorizeVO(user.getUsername(), "", token, jwtUtil.expireTime());
+        response.getWriter().write(RestBean.success(authorizeVO, "登录成功").asJsonString());
     }
 
     private void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
