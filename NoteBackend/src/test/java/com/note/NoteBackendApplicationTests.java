@@ -11,6 +11,7 @@ import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -52,14 +53,16 @@ class NoteBackendApplicationTests {
     @Test
     void contextLoads() {
         // token Test
-        String token = createJwt();
-        System.out.println(token);
-//
-        DecodedJWT decodedJWT = decodedJWT(token);
-        System.out.println(decodedJWT.getClaims().get("id").asInt());
-        Date expiresAt = decodedJWT.getExpiresAt();
-        Date now = new Date();
-        template.opsForValue().set(Constant.JWT_BLACK_LIST_START + UUID.randomUUID(), "This is test value");
+//        String token = createJwt();
+//        System.out.println(token);
+////
+//        DecodedJWT decodedJWT = decodedJWT(token);
+//        System.out.println(decodedJWT.getClaims().get("id").asInt());
+//        Date expiresAt = decodedJWT.getExpiresAt();
+//        Date now = new Date();
+//        template.opsForValue().set(Constant.JWT_BLACK_LIST_START + UUID.randomUUID(), "This is test value");
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        System.out.println(encoder.encode("123456"));
 
     }
 
