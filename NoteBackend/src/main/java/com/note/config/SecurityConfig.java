@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import java.io.IOException;
 
@@ -38,6 +39,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
                 .formLogin(login -> login.loginProcessingUrl("/api/auth/login")
                         .successHandler(this::onAuthenticationSuccess))
+                .logout(logout -> logout.logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler(this::onLogoutSuccess))
                 .exceptionHandling(conf -> conf.authenticationEntryPoint(this::commence))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -56,5 +59,15 @@ public class SecurityConfig {
     private void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.setContentType("application/json;charset=utf-8");
         response.getWriter().write(RestBean.failure(401, null, authException.getMessage()).asJsonString());
+    }
+
+    private void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        String authToken = request.getHeader("Authorization");
+        response.setContentType("application/json;charset=utf-8");
+        if (jwtUtil.delToken(authToken)) {
+            response.getWriter().write(RestBean.success(null, "退出成功").asJsonString());
+        } else {
+            response.getWriter().write(RestBean.failure(401, null, "退出失败").asJsonString());
+        }
     }
 }
