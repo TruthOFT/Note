@@ -6,6 +6,8 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.note.constant.Constant;
+import com.note.entity.dto.Account;
+import com.note.service.UserService;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,6 +38,9 @@ public class JwtUtil {
 
     @Resource
     StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    UserService userService;
 
     private final String tokenStart = "Bearer ";
 
@@ -84,9 +89,10 @@ public class JwtUtil {
     }
 
     public UserDetails jwtToUser(DecodedJWT jwt) {
+        Account account = userService.findUserByUsernameOrEmail(jwt.getClaim("username").asString());
         return User
-                .withUsername(jwt.getClaim("username").asString())
-                .password("123")
+                .withUsername(account.getUsername())
+                .password(account.getPassword())
                 .authorities(jwt.getClaim("auth").asArray(String.class))
                 .build();
     }
